@@ -27,23 +27,28 @@ jobs:
         run: |
           arduino-cli lib install "LiquidCrystal I2C"
 
-      # Compile (fixed path handling)
+      # Compile sketch
       - name: Compile
         run: |
-          arduino-cli compile --fqbn esp32:esp32:esp32 --output-dir build .
+          arduino-cli compile --fqbn esp32:esp32:esp32 .
 
-      # Merge BIN (fixed firmware target)
+      # Merge BIN (FIXED)
       - name: Merge BIN
         run: |
           pip install esptool
 
-          esptool.py --chip esp32 merge_bin -o firmware_merged.bin \
-          --flash_mode dio --flash_freq 40m --flash_size 4MB \
-          0x1000 build/*/bootloader.bin \
-          0x8000 build/*/partitions.bin \
-          0x10000 build/*/firmware.bin
+          # Find generated firmware
+          BIN_FILE=$(find . -name "*.bin" | grep -v partitions | grep -v bootloader | head -n 1)
 
-      # Upload artifact (FIXED: v4, not v3)
+          echo "Firmware: $BIN_FILE"
+
+          esptool merge-bin -o firmware_merged.bin \
+          --flash-mode dio --flash-freq 40m --flash-size 4MB \
+          0x1000 ~/.arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/bin/bootloader_qio_80m.bin \
+          0x8000 ~/.arduino15/packages/esp32/hardware/esp32/*/tools/partitions/default.bin \
+          0x10000 $BIN_FILE
+
+      # Upload BIN
       - name: Upload BIN
         uses: actions/upload-artifact@v4
         with:
