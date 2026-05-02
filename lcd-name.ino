@@ -1,12 +1,10 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-// Try 0x27 first. If blank, change to 0x3F
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 void setup() {
-  // ✅ Fix for ESP32 I2C (very important)
-  Wire.begin(21, 22);  // SDA = GPIO21, SCL = GPIO22
+  Wire.begin(21, 22);
 
   lcd.init();
   lcd.backlight();
@@ -18,5 +16,4 @@ void setup() {
   lcd.print("ESP32 TEST");
 }
 
-void loop() {
-}
+void loop() {}
