@@ -27,26 +27,25 @@ jobs:
         run: |
           arduino-cli lib install "LiquidCrystal I2C"
 
-      # Compile sketch
+      # Compile (FORCE OUTPUT LOCATION)
       - name: Compile
         run: |
-          arduino-cli compile --fqbn esp32:esp32:esp32 .
+          mkdir build
+          arduino-cli compile \
+            --fqbn esp32:esp32:esp32 \
+            --output-dir build \
+            .
 
-      # Merge BIN (FIXED)
+      # Merge BIN (NO GUESSING)
       - name: Merge BIN
         run: |
           pip install esptool
 
-          # Find generated firmware
-          BIN_FILE=$(find . -name "*.bin" | grep -v partitions | grep -v bootloader | head -n 1)
-
-          echo "Firmware: $BIN_FILE"
-
           esptool merge-bin -o firmware_merged.bin \
           --flash-mode dio --flash-freq 40m --flash-size 4MB \
-          0x1000 ~/.arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/bin/bootloader_qio_80m.bin \
-          0x8000 ~/.arduino15/packages/esp32/hardware/esp32/*/tools/partitions/default.bin \
-          0x10000 $BIN_FILE
+          0x1000 build/bootloader.bin \
+          0x8000 build/partitions.bin \
+          0x10000 build/lcd-name.ino.bin
 
       # Upload BIN
       - name: Upload BIN
